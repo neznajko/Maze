@@ -6,7 +6,7 @@ import random as randm
 import Canvas
 import time
 import sys
-from os import system as systm
+from os       import system as systm
 # wtf-8
 # z-z-z
 ################################################################
@@ -134,7 +134,7 @@ class Maze: ############################################### MAZE
       if self._cycle(r1):
         Mz[r1] = Sqr.Wall
         sys.stdout.flush()
-        time.sleep(0.5)
+        time.sleep(0.1)
         self.DrawSqr(r1)
       else:
         bf.append(dr)
@@ -175,7 +175,7 @@ class Maze: ############################################### MAZE
       Mz[r] = Sqr.Space
       self.DrawSqr(r)
       sys.stdout.flush()
-      time.sleep(0.5)
+      time.sleep(0.1)
       cont += 1      
   ##############################################################
   #
@@ -223,18 +223,30 @@ if __name__ == '__main__': ################################ VROO
   Mz.Draw()
   print(Canvas.CSI('?25'), end = 'l')
   Mz.Build()
+  for r in np.ndindex(Mz.ry.shape):
+    if Mz.ry[r] == Sqr.Fog:
+      Mz.ry[r] = Sqr.Wall
+      Mz.DrawSqr(r)
   trsr = np.unravel_index(Mz.path.argmax(), Mz.path.shape)
   y = Mz.offset[1] + trsr[0]
   x = Mz.offset[0] + trsr[1]
   Canvas.Display(x, y, [5], [100,100,0], [200,200,0], 'T')
+  r = Coor(trsr)
+  while Mz.path[r] > 0:
+    for dr in Globus.ls():
+      r1 = r + dr
+      if Mz.path[r1] == Mz.path[r] - 1:
+        y = Mz.offset[1] + r1[0]
+        x = Mz.offset[0] + r1[1]
+        Canvas.Display(x, y, [5], [10,100,240], [50,30,80], '»')
+        sys.stdout.flush()
+        time.sleep(0.1)
+        r = r1
+        break
   Mz.DrawSqr((args.m + 1, args.n + 1))
   print()
   print(Canvas.CSI('?25'), end = 'h')
   print(trsr)
+
 ################################################################
-# * add delay option
-# * add path counter (ck)
-# * args.m and n are reversed
-# * add to Canvas show and hide cursor functions
-# * after finishing building maze convyort fog to wall
-# and draw ze treasure
+# 
