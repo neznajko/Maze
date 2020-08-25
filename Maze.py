@@ -106,7 +106,7 @@ def jump_(p): return (randm.uniform(0, 1) < p) ########### JUMP_
 #
 class Maze: ############################################### MAZE
   global args
-  def __init__(self, offset=(10, 10)): ####### __INIT__
+  def __init__(self, offset=(10, 10)): ################ __INIT__
     self.ry = frame((args.m, args.n), Sqr.Fog, 1, Sqr.Wall)
     j = args.j
     self.ry[0, j] = self.ry[1, j] = Sqr.Space
