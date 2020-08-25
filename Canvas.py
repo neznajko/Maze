@@ -130,6 +130,8 @@ def hex2rgb(hx): #      |       |       :       |       '
   hx = [''.join(p) for p in zip(*[iter(hx)]*2)] # o_o   |
   return tuple(map(lambda x: int(x, base=16), hx)) #    ¦
 #       ¦       |       '       ¦       |       ,       :
+def HideCursor(): print(CSI('?25'), end = 'l') #|       ¦
+def ShowCursor(): print(CSI('?25'), end = 'h') #¦       |
 if __name__ == "__main__":
 #  import pdb; pdb.set_trace()
   b = Brush('W')

@@ -23,13 +23,13 @@ def gerop(): ############################################# GEROP
     'm',
     type=int,
     default=6,
-    help='Number of horizontal squares.',
+    help='Number of vertical squares.',
     nargs='?')
   pas.add_argument(
     'n',
     type=int,
     default=6,
-    help='Number of vertical squares.',
+    help='Number of horizontal squares.',
     nargs='?')
   pas.add_argument(
     '-j',
@@ -45,13 +45,14 @@ def gerop(): ############################################# GEROP
     type=int,
     default=10,
     help='Number of maximum "no-jump" squares.')
-  return pas.parse_args()  
-################################################################
-#
-class Sqr(Enum): ########################################### SQR
-   Fog   = (':', '#91a3b2', '#031354', Canvas.Brush(':'))
-   Wall  = ('@', '#821520', '#c32135', Canvas.Brush('@'))
-   Space = ('-', '#354120', '#abcdef', Canvas.Brush('-'))
+  pas.add_argument(
+    '-s',
+    '--sleep',
+    dest='s',
+    type=float,
+    default=0.1,
+    help='Time between two brush strokes.')
+  return pas.parse_args()
 ################################################################
 #
 def frame(ryShape, ryVal, fSize, fVal): ################## FRAME
@@ -68,6 +69,12 @@ def frame(ryShape, ryVal, fSize, fVal): ################## FRAME
   ry = np.insert(ry, 0, fr, axis=1) 
   ry = np.insert(ry, 0, fr, axis=0) 
   return ry
+################################################################
+#
+class Sqr(Enum): ########################################### SQR
+   Fog   = (':', '#91a3b2', '#031354', Canvas.Brush(':'))
+   Wall  = ('@', '#821520', '#c32135', Canvas.Brush('@'))
+   Space = ('-', '#354120', '#abcdef', Canvas.Brush('-'))
 ################################################################
 #
 class Coor(tuple): ######################################## COOR
@@ -98,9 +105,10 @@ def jump_(p): return (randm.uniform(0, 1) < p) ########### JUMP_
 ################################################################
 #
 class Maze: ############################################### MAZE
-  def __init__(self, m, n, j, offset=(10, 10)): ####### __INIT__
-    self.ry = frame((m, n), Sqr.Fog, 1, Sqr.Wall)
-    self.j  = j
+  global args
+  def __init__(self, offset=(10, 10)): ####### __INIT__
+    self.ry = frame((args.m, args.n), Sqr.Fog, 1, Sqr.Wall)
+    j = args.j
     self.ry[0, j] = self.ry[1, j] = Sqr.Space
     self.offset = offset
     self.path = np.zeros(self.ry.shape, dtype=int)
@@ -134,7 +142,7 @@ class Maze: ############################################### MAZE
       if self._cycle(r1):
         Mz[r1] = Sqr.Wall
         sys.stdout.flush()
-        time.sleep(0.1)
+        time.sleep(args.s)
         self.DrawSqr(r1)
       else:
         bf.append(dr)
@@ -142,10 +150,9 @@ class Maze: ############################################### MAZE
   ##############################################################
   #
   def Build(self): ####################################### BUILD
-    global args
     if args.debug: import pdb; pdb.set_trace()
     # [0 Init.]
-    r = Coor((1, self.j))
+    r = Coor((1, args.j))
     föok = {r} # fork set
     cont = 0 # path counter
     Mz = self.ry
@@ -175,7 +182,7 @@ class Maze: ############################################### MAZE
       Mz[r] = Sqr.Space
       self.DrawSqr(r)
       sys.stdout.flush()
-      time.sleep(0.1)
+      time.sleep(args.s)
       cont += 1      
   ##############################################################
   #
@@ -206,47 +213,46 @@ class Maze: ############################################### MAZE
       self.DrawSqr(r)
   ##############################################################
   #
+  def GetTrsr(self): ################################### GETTRSR
+    ''' This class won't win a Design Award! '''
+    Mz = self.ry
+    # convyort left fog squares to wall
+    for r in np.ndindex(Mz.shape):
+      if Mz[r] == Sqr.Fog:
+        Mz[r] = Sqr.Wall
+        self.DrawSqr(r)
+    trsr = np.unravel_index(self.path.argmax(), self.path.shape)
+    y = self.offset[1] + trsr[0]
+    x = self.offset[0] + trsr[1]
+    Canvas.Display(x, y, [5], [100,100,0], [200,200,0], 'T')
+    r = Coor(trsr)
+    while self.path[r] > 0:
+      for dr in Globus.ls():
+        r1 = r + dr
+        if self.path[r1] == self.path[r] - 1:
+          y = self.offset[1] + r1[0]
+          x = self.offset[0] + r1[1]
+          Canvas.Display(x,y,[5],[10,100,240],[50,30,80],'»')
+          sys.stdout.flush()
+          time.sleep(args.s)
+          r = r1
+          break
+    return trsr
+  ##############################################################
+  #
 ################################################################
 #
 if __name__ == '__main__': ################################ VROO
   args = gerop()
-  if args.debug:
-    print('Debuging: On')
-  else:
-    print('Debuging: Off')
-  print('m = ', args.m, '\n',
-        'n = ', args.n, '\n',
-        'j = ', args.j, '\n',
-        'N = ', args.N, sep='')
-  Mz = Maze(args.m, args.n, args.j, offset=(1, 1))
+  Mz = Maze(offset=(1, 1))
   systm("clear")
   Mz.Draw()
-  print(Canvas.CSI('?25'), end = 'l')
+  Canvas.HideCursor()
   Mz.Build()
-  for r in np.ndindex(Mz.ry.shape):
-    if Mz.ry[r] == Sqr.Fog:
-      Mz.ry[r] = Sqr.Wall
-      Mz.DrawSqr(r)
-  trsr = np.unravel_index(Mz.path.argmax(), Mz.path.shape)
-  y = Mz.offset[1] + trsr[0]
-  x = Mz.offset[0] + trsr[1]
-  Canvas.Display(x, y, [5], [100,100,0], [200,200,0], 'T')
-  r = Coor(trsr)
-  while Mz.path[r] > 0:
-    for dr in Globus.ls():
-      r1 = r + dr
-      if Mz.path[r1] == Mz.path[r] - 1:
-        y = Mz.offset[1] + r1[0]
-        x = Mz.offset[0] + r1[1]
-        Canvas.Display(x, y, [5], [10,100,240], [50,30,80], '»')
-        sys.stdout.flush()
-        time.sleep(0.1)
-        r = r1
-        break
-  Mz.DrawSqr((args.m + 1, args.n + 1))
-  print()
-  print(Canvas.CSI('?25'), end = 'h')
+  trsr = Mz.GetTrsr()
+  # Position the cursor below the maze.
+  print(Canvas.CSI(f'{args.m + 4};0'), end='H')
   print(trsr)
-
+  Canvas.ShowCursor()
 ################################################################
-# 
+# :)
