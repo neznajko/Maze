@@ -94,7 +94,7 @@ class Globus(Enum): ##################################### GLOBUS
 ################################################################
 #
 def probbty(cont): ##################################### PROBBTY
-  ''' It could be linear (or any) function of cont '''
+  ''' It could be linear(or any) function of cont '''
   global args
   cont /= args.N
   return cont**2
@@ -187,9 +187,7 @@ class Maze: ############################################### MAZE
   ##############################################################
   #
   def DrawSqr(self, r): ################################ DRAWSQR
-    ''' r = i, j (numpy index) corresponds to y, x terminal
-    coordinates, that is i is y, j is x.
-    '''
+    ''' r = i, j corresponds to y, x terminal coordinates. '''
     # Unpack index and get square data.
     i, j = r
     sq = self.ry[i, j]
@@ -208,7 +206,7 @@ class Maze: ############################################### MAZE
   ##############################################################
   # set offset field
   def Draw(self): ######################################### DRAW
-    ''' For drawing the initial Maze '''
+    ''' Draw all Maze squares. '''
     for r in np.ndindex(*self.ry.shape):
       self.DrawSqr(r)
   ##############################################################
@@ -250,9 +248,9 @@ if __name__ == '__main__': ################################ VROO
   Canvas.HideCursor()
   Mz.Build()
   trsr = Mz.GetTrsr()
-  # Position the cursor below the maze.
+  # Position the cursor below the Maze.
   print(Canvas.CSI(f'{args.m + 4};0'), end='H')
   print(trsr)
   Canvas.ShowCursor()
 ################################################################
-# :)
+# 
